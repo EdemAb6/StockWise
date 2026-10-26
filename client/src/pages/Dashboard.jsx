@@ -30,18 +30,38 @@ function MovementType({ type }) {
   );
 }
 
-export default function Dashboard() {
-  const [stats, setStats] = useState(null);
+export default function Dashboard({ onNavigate }) {
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalInventoryValue: 0,
+    lowStockProducts: 0,
+    recentMovements: [],
+  });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(null);
     getDashboardStats()
       .then((data) => {
-        if (active) setStats(data);
+        if (active) {
+          setStats({
+            totalProducts: data?.totalProducts ?? 0,
+            totalInventoryValue: data?.totalInventoryValue ?? 0,
+            lowStockProducts: data?.lowStockProducts ?? 0,
+            recentMovements: Array.isArray(data?.recentMovements)
+              ? data.recentMovements
+              : [],
+          });
+        }
       })
       .catch((requestError) => {
         if (active) setError(requestError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
 
     return () => {
@@ -58,7 +78,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!stats) {
+  if (loading) {
     return (
       <div className="space-y-8" aria-busy="true">
         <div className="h-12 w-64 animate-pulse rounded-lg bg-slate-200" />
@@ -70,7 +90,7 @@ export default function Dashboard() {
     );
   }
 
-  const movements = stats.recentMovements || [];
+  const movements = stats?.recentMovements ?? [];
 
   return (
     <div className="space-y-8">
@@ -81,9 +101,9 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        <MetricCard label="Total Products" value={stats.totalProducts} caption="Active products in catalog" tone="bg-blue-50" icon={<span className="text-xl text-blue-600">▦</span>} />
-        <MetricCard label="Inventory Value" value={currencyFormatter.format(stats.totalInventoryValue)} caption="Current stock valuation" tone="bg-violet-50" icon={<span className="text-xl text-violet-600">$</span>} />
-        <MetricCard label="Low Stock Alerts" value={stats.lowStockProducts} caption="Products needing attention" tone="bg-amber-50" icon={<span className="text-xl text-amber-600">!</span>} />
+        <MetricCard label="Total Products" value={stats?.totalProducts ?? 0} caption="Active products in catalog" tone="bg-blue-50" icon={<span className="text-xl text-blue-600">▦</span>} />
+        <MetricCard label="Inventory Value" value={currencyFormatter.format(stats?.totalInventoryValue ?? 0)} caption="Current stock valuation" tone="bg-violet-50" icon={<span className="text-xl text-violet-600">$</span>} />
+        <MetricCard label="Low Stock Alerts" value={stats?.lowStockProducts ?? 0} caption="Products needing attention" tone="bg-amber-50" icon={<span className="text-xl text-amber-600">!</span>} />
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
@@ -92,7 +112,7 @@ export default function Dashboard() {
             <h2 className="font-semibold text-slate-900">Recent movements</h2>
             <p className="mt-1 text-sm text-slate-500">The latest changes to your inventory.</p>
           </div>
-          <a className="text-sm font-semibold text-brand-600 hover:text-brand-700" href="/movements">View all</a>
+          <button className="text-sm font-semibold text-brand-600 hover:text-brand-700" onClick={() => onNavigate?.("movements")} type="button">View all</button>
         </div>
         {movements.length === 0 ? (
           <div className="px-6 py-16 text-center">
@@ -112,7 +132,7 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {movements.map((movement) => (
+                {movements?.map((movement) => (
                   <tr className="text-slate-600" key={movement.id}>
                     <td className="px-6 py-4">
                       <p className="font-semibold text-slate-800">{movement.productName}</p>

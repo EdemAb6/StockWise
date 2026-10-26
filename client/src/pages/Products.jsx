@@ -14,13 +14,17 @@ export default function Products() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const categories = useMemo(() => [...new Set(products.map((product) => product.category))].sort(), [products]);
+  const categories = useMemo(
+    () => [...new Set(products?.map((product) => product.category) || [])].sort(),
+    [products],
+  );
 
   async function loadProducts() {
     setLoading(true);
     setError("");
     try {
-      setProducts(await getProducts(filters));
+      const data = await getProducts(filters);
+      setProducts(Array.isArray(data) ? data : []);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -88,7 +92,7 @@ export default function Products() {
           <input className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" name="search" onChange={updateFilter} placeholder="Search by name or SKU..." value={filters.search} />
           <select className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-600 outline-none focus:border-brand-500" name="category" onChange={updateFilter} value={filters.category}>
             <option value="">All categories</option>
-            {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+            {categories?.map((category) => <option key={category} value={category}>{category}</option>)}
           </select>
           <select className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-600 outline-none focus:border-brand-500" name="stockStatus" onChange={updateFilter} value={filters.stockStatus}>
             <option value="">All stock levels</option>
@@ -101,14 +105,14 @@ export default function Products() {
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
         {loading ? (
           <div className="space-y-3 p-6">{[1, 2, 3, 4].map((item) => <div className="h-14 animate-pulse rounded-lg bg-slate-100" key={item} />)}</div>
-        ) : products.length === 0 ? (
+        ) : products?.length === 0 ? (
           <div className="px-6 py-20 text-center"><p className="font-semibold text-slate-700">No products found</p><p className="mt-1 text-sm text-slate-500">Try changing your filters or create a new product.</p></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr>{["Product", "SKU", "Category", "Price", "Quantity", "Minimum", "Status", "Actions"].map((heading) => <th className="px-5 py-4 font-semibold" key={heading}>{heading}</th>)}</tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {products.map((product) => {
+                {products?.map((product) => {
                   const lowStock = product.quantity <= product.minimumStock;
                   return <tr className="text-slate-600" key={product.id}>
                     <td className="px-5 py-4"><p className="font-semibold text-slate-800">{product.name}</p><p className="mt-1 max-w-xs truncate text-xs text-slate-400">{product.description || "No description"}</p></td>

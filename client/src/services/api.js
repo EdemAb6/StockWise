@@ -18,6 +18,8 @@ export async function apiRequest(path, options = {}) {
     const error = new Error(body?.error || "Something went wrong");
     error.status = response.status;
     error.details = body?.details;
+    error.availableQuantity = body?.availableQuantity;
+    error.requestedQuantity = body?.requestedQuantity;
     throw error;
   }
 
@@ -64,5 +66,16 @@ export function updateProduct(id, productData) {
 export function deleteProduct(id) {
   return apiRequest(`/products/${id}`, {
     method: "DELETE",
+  });
+}
+
+export function getMovements(params = {}) {
+  return apiRequest(`/movements${buildQueryString(params)}`);
+}
+
+export function createMovement(productId, movementData) {
+  return apiRequest(`/products/${productId}/movements`, {
+    method: "POST",
+    body: JSON.stringify(movementData),
   });
 }

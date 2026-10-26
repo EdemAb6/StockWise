@@ -83,9 +83,9 @@ export default function Layout({ children, currentView, onNavigate }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900">
       <div className={`fixed inset-0 z-30 bg-slate-950/50 transition lg:hidden ${sidebarOpen ? "block" : "hidden"}`} onClick={() => setSidebarOpen(false)} />
-      <div className={`fixed inset-y-0 left-0 z-40 transform transition-transform lg:static lg:block lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed inset-y-0 left-0 z-40 transform transition-transform lg:static lg:block lg:w-64 lg:flex-shrink-0 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <Sidebar
           currentView={currentView}
           onNavigate={(view) => {
@@ -95,8 +95,8 @@ export default function Layout({ children, currentView, onNavigate }) {
         />
       </div>
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-5 backdrop-blur sm:px-8">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-20 flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white/90 px-5 backdrop-blur sm:px-8">
           <button
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
             onClick={() => setSidebarOpen(true)}
@@ -116,7 +116,9 @@ export default function Layout({ children, currentView, onNavigate }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl p-5 sm:p-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-7xl p-5 sm:p-8">{children}</div>
+        </main>
       </div>
     </div>
   );
